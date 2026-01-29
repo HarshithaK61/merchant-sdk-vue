@@ -145,6 +145,10 @@ const initSDK = async () => {
           case 'verification-completed':
             verificationResult.value = event.data;
             break;
+          case 'modal-closed':
+          case 'user-rejected':
+            isConnecting.value = false;
+            break;
           case 'error':
             isConnecting.value = false;
             break;
