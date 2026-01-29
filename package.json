@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
-    "deploy:full": "bash deploy.sh"
+    "deploy:full": "bash deploy.sh",
+    "typecheck": "vue-tsc --noEmit",
+    "lint": "eslint . --ext .vue,.ts,.tsx"
   },
   "dependencies": {
     "@walletconnect/sign-client": "^2.23.3",
@@ -20,6 +22,10 @@
     "@types/node": "^24.10.1",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.8.1",
+    "eslint": "^8.57.0",
+    "eslint-plugin-vue": "^9.20.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
     "gh-pages": "^6.2.0",
     "typescript": "~5.9.3",
     "vite": "^7.2.4",

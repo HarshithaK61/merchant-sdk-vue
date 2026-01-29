@@ -1,0 +1,9 @@
+node_modules
+dist
+*.local
+.DS_Store
+QUICK_REFERENCE.js
+setup-git.sh
+deploy.sh
+*.config.ts
+*.config.js
