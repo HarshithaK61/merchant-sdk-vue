@@ -1,5 +1,5 @@
 [build]
-  command = "chmod +x ./setup-git.sh && ./setup-git.sh && npm ci && npm run build"
+  command = "chmod +x ./setup-git.sh && rm -f package-lock.json && ./setup-git.sh && npm install && npm run build"
   publish = "dist"
 
 [build.environment]
