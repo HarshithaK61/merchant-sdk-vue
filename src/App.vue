@@ -101,6 +101,11 @@ const performVerification = async (session: SessionTypes.Struct) => {
 
 // Initialize WalletConnect client
 const initWalletConnect = async () => {
+  // Don't reinitialize if already exists
+  if (walletConnect.value) {
+    return;
+  }
+
   isLoading.value = true;
 
   try {
