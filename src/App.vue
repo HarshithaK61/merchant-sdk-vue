@@ -258,10 +258,10 @@ const selectMode = async (mode: 'sdk-managed' | 'merchant-provided') => {
 };
 
 // Change integration mode (reset everything)
-const changeMode = () => {
+const changeMode = async () => {
   // Disconnect if connected
   if (currentSession.value) {
-    disconnectAllSessions();
+    await disconnectAllSessions();
   }
   
   // Reset state
@@ -269,6 +269,8 @@ const changeMode = () => {
   showModeSelector.value = true;
   isConnecting.value = false;
   isVerified.value = false;
+  currentSession.value = null;
+  verificationResult.value = null;
 };
 
 // Watch for session changes
@@ -293,7 +295,7 @@ watch(
           verificationResult.value = result;
 
           if (result.verified) {
-            isVerified.value = false;
+            isVerified.value = true;
             await sdk.value.showSuccessState();
           }
         } catch (error) {
@@ -310,11 +312,65 @@ const disconnectAllSessions = async () => {
     refreshSessions();
     currentSession.value = null;
   }
+  // Reset state when disconnecting
+  isVerified.value = false;
+  verificationResult.value = null;
+};
+
+// Check for existing sessions on load
+const checkExistingSessions = async () => {
+  try {
+    // Try to initialize WalletConnect client to check for sessions
+    walletConnect.value = new MerchantWalletConnect({
+      onSessionEvent: () => { },
+      onSessionDelete: () => {
+        currentSession.value = null;
+        isVerified.value = false;
+        showModeSelector.value = true;
+      },
+      onSessionExpire: () => {
+        currentSession.value = null;
+        isVerified.value = false;
+        showModeSelector.value = true;
+      },
+      onSessionRequestExpire: () => { },
+      onReconnectRequired: async () => {
+        currentSession.value = null;
+        uri.value = '';
+      },
+    });
+
+    await walletConnect.value.initClient();
+    
+    // Check if there are any active sessions
+    const existingSessions = walletConnect.value.getListOfSessions();
+    
+    if (existingSessions && existingSessions.length > 0) {
+      // Found existing session
+      const session = walletConnect.value.getMostRecentValidSession();
+      if (session) {
+        currentSession.value = session;
+        isVerified.value = true;
+        showModeSelector.value = false;
+        integrationMode.value = 'merchant-provided';
+        
+        // Initialize SDK for UI
+        await initSDK();
+      }
+    } else {
+      // No sessions found, show mode selector
+      showModeSelector.value = true;
+    }
+  } catch (error) {
+    console.log('No existing sessions found:', error);
+    // Show mode selector if error or no sessions
+    showModeSelector.value = true;
+  }
 };
 
 // Lifecycle
-onMounted(() => {
-  // Do nothing - wait for user to select integration mode
+onMounted(async () => {
+  await checkExistingSessions();
 });
 
 onBeforeUnmount(() => {
