@@ -1,4 +1,22 @@
 <script setup lang="ts">
+/**
+ * Merchant SDK Demo - Dual Integration Modes
+ * 
+ * This demo shows TWO ways to integrate WalletConnect:
+ * 
+ * 1. SDK-MANAGED MODE (Simple - Recommended)
+ *    - SDK handles WalletConnect initialization
+ *    - SDK generates QR code
+ *    - SDK manages sessions
+ *    - Code: sdk.initWalletConnect({ projectId, network })
+ * 
+ * 2. MERCHANT-PROVIDED MODE (Advanced)
+ *    - You create WalletConnect client
+ *    - You generate URI
+ *    - You manage sessions
+ *    - Code: sdk.showWalletConnectPopup(uri)
+ */
+
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { MerchantSDK } from 'merchant-sdk';
 import 'merchant-sdk/dist/merchant-sdk.css';
@@ -6,7 +24,11 @@ import { MerchantWalletConnect } from './wallet-connect';
 import { ApiService } from './services/api.service';
 import type { SessionTypes } from '@walletconnect/types';
 
-// WalletConnect instance
+// Integration mode: 'sdk-managed' or 'merchant-provided'
+const integrationMode = ref<'sdk-managed' | 'merchant-provided' | null>(null);
+const showModeSelector = ref(true);
+
+// WalletConnect instance (only used in merchant-provided mode)
 const walletConnect = ref<MerchantWalletConnect | null>(null);
 
 // API service instance
@@ -146,6 +168,41 @@ const refreshSessions = () => {
 
 // Handle network action - connect or show actions
 const handleNetworkAction = async () => {
+  if (integrationMode.value === 'sdk-managed') {
+    await connectWalletSDKManaged();
+  } else {
+    await connectWalletMerchantProvided();
+  }
+};
+
+// SDK-Managed Mode: Let SDK handle everything
+const connectWalletSDKManaged = async () => {
+  if (!sdk.value) {
+    await initSDK();
+  }
+
+  isConnecting.value = true;
+
+  try {
+    // SDK handles WalletConnect initialization, QR generation, and session management
+    await sdk.value!.initWalletConnect({
+      projectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID,
+      network: import.meta.env.VITE_NETWORK,
+      metadata: {
+        name: 'Merchant SDK Demo',
+        description: 'Merchant dApp using Concordium ID verification',
+        url: window.location.origin,
+        icons: [`${window.location.origin}/favicon.ico`],
+      }
+    });
+  } catch (error) {
+    console.error('SDK-managed mode error:', error);
+    isConnecting.value = false;
+  }
+};
+
+// Merchant-Provided Mode: Merchant handles WalletConnect
+const connectWalletMerchantProvided = async () => {
   if (!walletConnect.value) {
     await initWalletConnect();
   }
@@ -157,7 +214,7 @@ const handleNetworkAction = async () => {
   }
 };
 
-// Connect wallet and show QR popup
+// Connect wallet and show QR popup (merchant-provided mode)
 const connectWallet = async () => {
   if (!walletConnect.value) {
     return;
@@ -180,6 +237,34 @@ const connectWallet = async () => {
   } catch (error) {
     isConnecting.value = false;
   }
+};
+
+// Select integration mode
+const selectMode = async (mode: 'sdk-managed' | 'merchant-provided') => {
+  integrationMode.value = mode;
+  showModeSelector.value = false;
+  
+  // Initialize SDK first
+  await initSDK();
+  
+  // Initialize WalletConnect only for merchant-provided mode
+  if (mode === 'merchant-provided') {
+    await initWalletConnect();
+  }
+};
+
+// Change integration mode (reset everything)
+const changeMode = () => {
+  // Disconnect if connected
+  if (currentSession.value) {
+    disconnectAllSessions();
+  }
+  
+  // Reset state
+  integrationMode.value = null;
+  showModeSelector.value = true;
+  isConnecting.value = false;
+  isVerified.value = false;
 };
 
 // Watch for session changes
@@ -224,9 +309,8 @@ const disconnectAllSessions = async () => {
 };
 
 // Lifecycle
-onMounted(async () => {
-  await initWalletConnect();
-  await initSDK();
+onMounted(() => {
+  // Do nothing - wait for user to select integration mode
 });
 
 onBeforeUnmount(() => {
@@ -237,11 +321,34 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
+  <!-- Main Site Content -->
   <div class="wrapper tinder">
-    <div v-if="!currentSession && !isVerified" class="blur"></div>
-
+    <div v-if="!currentSession && !isVerified && !showModeSelector" class="blur"></div>
     <div class="header-wrap tinder"></div>
     <div class="bg-wrapper tinder"></div>
+  </div>
+
+  <!-- Integration Mode Selection Modal -->
+  <div v-if="showModeSelector" class="mode-selector-overlay">
+    <div class="mode-selector-modal">
+      <h2>Choose Integration Mode</h2>
+      
+      <button @click="selectMode('sdk-managed')" class="mode-btn">
+        <strong>SDK-Managed</strong>
+        <p>SDK handles everything</p>
+      </button>
+      
+      <button @click="selectMode('merchant-provided')" class="mode-btn">
+        <strong>Merchant-Provided</strong>
+        <p>You manage WalletConnect</p>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mode Badge (shown after selection) -->
+  <div v-if="!showModeSelector && integrationMode" class="mode-badge">
+    <span class="badge-text">{{ integrationMode === 'sdk-managed' ? 'SDK-Managed' : 'Merchant-Provided' }}</span>
+    <button @click="changeMode" class="badge-change-btn" title="Change mode">Change</button>
   </div>
 
   <!-- Loading overlay -->
@@ -251,73 +358,161 @@ onBeforeUnmount(() => {
   </div>
 
   <!-- Show Logout when connected, Login when not -->
-  <button v-if="currentSession" @click="disconnectAllSessions" :disabled="isConnecting" class="modal-btn">
+  <button 
+    v-if="!showModeSelector && currentSession" 
+    @click="disconnectAllSessions" 
+    :disabled="isConnecting" 
+    class="modal-btn"
+  >
     Logout
   </button>
-  <button v-else @click="handleNetworkAction" :disabled="isConnecting" class="modal-btn">
+  <button 
+    v-else-if="!showModeSelector" 
+    @click="handleNetworkAction" 
+    :disabled="isConnecting" 
+    class="modal-btn"
+  >
     {{ isConnecting ? 'Loading...' : 'Login' }}
   </button>
 </template>
 
 <style scoped>
-.modal-btn {
-  position: absolute;
-  top: 2%;
-  right: 2%;
-  padding: 9px 45px;
-  font-size: 16px;
-  background-color: white;
-  color: black;
-  border: none;
-  border-radius: 1000px;
-  cursor: pointer;
-  z-index: 10;
-  transition: opacity 0.2s ease;
-}
-
-.modal-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.blur {
-  z-index: 1;
-}
-
-.loading-overlay {
+/* Mode Selection Modal */
+.mode-selector-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
-  z-index: 9998;
-  color: white;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  justify-content: center;
+  z-index: 10000;
 }
 
-.loading-overlay p {
-  margin-top: 16px;
-  font-size: 18px;
+.mode-selector-modal {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  max-width: 320px;
+  width: 90%;
+}
+
+.mode-selector-modal h2 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+}
+
+.mode-btn {
+  width: 100%;
+  background: white;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.mode-btn:hover {
+  border-color: #667eea;
+}
+
+.mode-btn:last-child {
+  margin-bottom: 0;
+}
+
+.mode-btn strong {
+  display: block;
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.mode-btn p {
+  margin: 0;
+  font-size: 12px;
+  color: #666;
+}
+
+/* Mode Badge */
+.mode-badge {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  background: white;
+  border: 1px solid #ddd;
+  padding: 8px 16px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 10;
+  font-size: 14px;
+}
+
+.badge-text {
   font-weight: 500;
+  color: #333;
 }
 
-.spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+.badge-change-btn {
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  color: #666;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  margin-left: 8px;
+}
+
+.badge-change-btn:hover {
+  background: #e5e5e5;
+}
+
+.modal-btn {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  padding: 8px 20px;
+  font-size: 14px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 10
 }
 
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .mode-selector-modal {
+    padding: 16px;
+  }
+  
+  .mode-badge {
+    top: 10px;
+    left: 10px;
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+  
+  .modal-btn {
+    top: 10px;
+    right: 10px;
+    padding: 6px 12px;
+    font-size: 12px;
   }
 }
 </style>
@@ -329,3 +524,18 @@ onBeforeUnmount(() => {
   z-index: 9999 !important;
 }
 </style>
+*/
+@media (max-width: 768px) {
+  .mode-selector-modal {
+    padding: 24px;
+  }
+  
+  .mode-badge {
+    top: 12px;
+    left: 12px;
+    font-size: 12px;
+  }
+  
+  .modal-btn {
+    top: 12px;
+    right: 12
