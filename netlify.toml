@@ -1,6 +1,7 @@
 [build]
-  command = "chmod +x ./setup-git.sh && ./setup-git.sh && npm install && npm run build"
+  command = "chmod +x ./setup-git.sh && ./setup-git.sh && npm ci && npm run build"
   publish = "dist"
 
 [build.environment]
   NODE_VERSION = "20"
+  NPM_FLAGS = "--loglevel=verbose"
