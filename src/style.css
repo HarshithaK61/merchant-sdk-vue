@@ -8,7 +8,7 @@
 }
 
 .bg-wrapper {
-  background-image: url("./assets/images/image-110.jpg");
+  background-image: url('./assets/images/image-110.jpg');
   background-position: 50% 0;
   background-repeat: no-repeat;
   background-size: 2166px;
@@ -21,19 +21,19 @@
 }
 
 .bg-wrapper.majestic {
-  background-image: url("./assets/images/Screenshot-at-Oct-29-16-52-24-2.jpg");
+  background-image: url('./assets/images/Screenshot-at-Oct-29-16-52-24-2.jpg');
 }
 
 .bg-wrapper.discord {
-  background-image: url("./assets/images/image-114.jpg");
+  background-image: url('./assets/images/image-114.jpg');
 }
 
 .bg-wrapper.tinder {
-  background-image: url("./assets/images/image-118.jpg");
+  background-image: url('./assets/images/image-118.jpg');
 }
 
 .bg-wrapper.porn {
-  background-image: url("./assets/images/Frame-41738.jpg");
+  background-image: url('./assets/images/Frame-41738.jpg');
 }
 
 .image {
@@ -46,7 +46,7 @@
 }
 
 .header-wrap {
-  background-image: url("./assets/images/image-109.jpg");
+  background-image: url('./assets/images/image-109.jpg');
   background-position: 50% 0;
   background-repeat: no-repeat;
   justify-content: center;
@@ -58,22 +58,22 @@
 }
 
 .header-wrap.majestic {
-  background-image: url("./assets/images/Screenshot-at-Oct-29-16-52-24-1.jpg");
+  background-image: url('./assets/images/Screenshot-at-Oct-29-16-52-24-1.jpg');
   height: 116px;
 }
 
 .header-wrap.discord {
-  background-image: url("./assets/images/image-113.jpg");
+  background-image: url('./assets/images/image-113.jpg');
   height: 116px;
 }
 
 .header-wrap.tinder {
-  background-image: url("./assets/images/image-117.jpg");
+  background-image: url('./assets/images/image-117.jpg');
   height: 83px;
 }
 
 .header-wrap.phub {
-  background-image: url("./assets/images/image-121.jpg");
+  background-image: url('./assets/images/image-121.jpg');
   height: 144px;
 }
 
@@ -225,7 +225,7 @@
 }
 
 .form_input.is-select-input {
-  background-image: url("./assets/images/chevron-down.svg");
+  background-image: url('./assets/images/chevron-down.svg');
   background-position: 99%;
   background-repeat: no-repeat;
   background-size: auto;
@@ -836,52 +836,52 @@
 
 @media screen and (max-width: 767px) {
   .bg-wrapper {
-    background-image: url("./assets/images/Screenshot-2025-10-29-at-16.06.32-2.jpg");
+    background-image: url('./assets/images/Screenshot-2025-10-29-at-16.06.32-2.jpg');
     background-size: contain;
   }
 
   .bg-wrapper.majestic {
-    background-image: url("./assets/images/image-112.jpg");
+    background-image: url('./assets/images/image-112.jpg');
   }
 
   .bg-wrapper.discord {
-    background-image: url("./assets/images/image-116.jpg");
+    background-image: url('./assets/images/image-116.jpg');
   }
 
   .bg-wrapper.tinder {
-    background-image: url("./assets/images/image-120.jpg");
+    background-image: url('./assets/images/image-120.jpg');
   }
 
   .bg-wrapper.porn {
-    background-image: url("./assets/images/Group-1798.jpg");
+    background-image: url('./assets/images/Group-1798.jpg');
   }
 
   .header-wrap {
-    background-image: url("./assets/images/Screenshot-2025-10-29-at-16.06.32-1.jpg");
+    background-image: url('./assets/images/Screenshot-2025-10-29-at-16.06.32-1.jpg');
     background-size: cover;
     height: 144px;
   }
 
   .header-wrap.majestic {
-    background-image: url("./assets/images/image-111.jpg");
+    background-image: url('./assets/images/image-111.jpg');
     background-size: contain;
     height: 113px;
   }
 
   .header-wrap.discord {
-    background-image: url("./assets/images/image-115.jpg");
+    background-image: url('./assets/images/image-115.jpg');
     background-size: contain;
     height: 61px;
   }
 
   .header-wrap.tinder {
-    background-image: url("./assets/images/image-119.jpg");
+    background-image: url('./assets/images/image-119.jpg');
     background-size: contain;
     height: 61px;
   }
 
   .header-wrap.phub {
-    background-image: url("./assets/images/Group-1789.jpg");
+    background-image: url('./assets/images/Group-1789.jpg');
     background-size: contain;
     height: 61px;
   }

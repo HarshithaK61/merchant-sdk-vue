@@ -1,15 +1,15 @@
 <script setup lang="ts">
 /**
  * Merchant SDK Demo - Dual Integration Modes
- * 
+ *
  * This demo shows TWO ways to integrate WalletConnect:
- * 
+ *
  * 1. SDK-MANAGED MODE (Simple - Recommended)
  *    - SDK handles WalletConnect initialization
  *    - SDK generates QR code
  *    - SDK manages sessions
  *    - Code: sdk.initWalletConnect({ projectId, network })
- * 
+ *
  * 2. MERCHANT-PROVIDED MODE (Advanced)
  *    - You create WalletConnect client
  *    - You generate URI
@@ -43,7 +43,7 @@ const sdk = ref<MerchantSDK | null>(null);
 
 // State
 const isLoading = ref(false);
-const isInitialized = ref(false); 
+const isInitialized = ref(false);
 const isConnecting = ref(false);
 const isVerified = ref(false);
 const uri = ref('');
@@ -53,7 +53,7 @@ const verificationResult = ref<any>(null);
 
 // Chain ID mapping for Concordium networks
 const chainId = computed(() => {
-  return 'ccd:4221332d34e1694168c2a0c0b3fd0f27'
+  return 'ccd:4221332d34e1694168c2a0c0b3fd0f27';
 });
 
 // Get network name from environment
@@ -88,10 +88,12 @@ const performVerification = async (session: SessionTypes.Struct) => {
   // Step 3: Verify the proof with backend (API call)
   const result = await apiService.verifyPresentation({
     presentation: {
-      presentationContext: proof?.verifiablePresentationJson?.presentationContext,
+      presentationContext:
+        proof?.verifiablePresentationJson?.presentationContext,
       proof: proof?.verifiablePresentationJson?.proof,
       type: proof?.verifiablePresentationJson?.type,
-      verifiableCredential: proof?.verifiablePresentationJson?.verifiableCredential,
+      verifiableCredential:
+        proof?.verifiablePresentationJson?.verifiableCredential,
     },
     network: network.value,
   });
@@ -110,7 +112,7 @@ const initWalletConnect = async () => {
 
   try {
     walletConnect.value = new MerchantWalletConnect({
-      onSessionEvent: () => { },
+      onSessionEvent: () => {},
       onSessionDelete: () => {
         currentSession.value = null;
         refreshSessions();
@@ -119,7 +121,7 @@ const initWalletConnect = async () => {
         currentSession.value = null;
         refreshSessions();
       },
-      onSessionRequestExpire: () => { },
+      onSessionRequestExpire: () => {},
       onReconnectRequired: async () => {
         currentSession.value = null;
         uri.value = '';
@@ -158,7 +160,7 @@ const initSDK = async () => {
             isConnecting.value = false;
             break;
         }
-      }
+      },
     });
 
     isInitialized.value = true;
@@ -202,7 +204,7 @@ const connectWalletSDKManaged = async () => {
         description: 'Merchant dApp using Concordium ID verification',
         url: window.location.origin,
         icons: [`${window.location.origin}/favicon.ico`],
-      }
+      },
     });
   } catch (error) {
     console.error('SDK-managed mode error:', error);
@@ -252,10 +254,10 @@ const connectWallet = async () => {
 const selectMode = async (mode: 'sdk-managed' | 'merchant-provided') => {
   integrationMode.value = mode;
   showModeSelector.value = false;
-  
+
   // Initialize SDK first
   await initSDK();
-  
+
   // Initialize WalletConnect only for merchant-provided mode
   if (mode === 'merchant-provided') {
     await initWalletConnect();
@@ -268,7 +270,7 @@ const changeMode = async () => {
   if (currentSession.value) {
     await disconnectAllSessions();
   }
-  
+
   // Reset state
   integrationMode.value = null;
   showModeSelector.value = true;
@@ -293,7 +295,7 @@ watch(
           await sdk.value.handleSessionApproval({
             session: newSession,
             accounts: newSession.namespaces?.ccd?.accounts || [],
-            walletConnectSessionTopic: newSession.topic
+            walletConnectSessionTopic: newSession.topic,
           });
 
           const result = await performVerification(newSession);
@@ -327,7 +329,7 @@ const checkExistingSessions = async () => {
   try {
     // Try to initialize WalletConnect client to check for sessions
     walletConnect.value = new MerchantWalletConnect({
-      onSessionEvent: () => { },
+      onSessionEvent: () => {},
       onSessionDelete: () => {
         currentSession.value = null;
         isVerified.value = false;
@@ -338,7 +340,7 @@ const checkExistingSessions = async () => {
         isVerified.value = false;
         showModeSelector.value = true;
       },
-      onSessionRequestExpire: () => { },
+      onSessionRequestExpire: () => {},
       onReconnectRequired: async () => {
         currentSession.value = null;
         uri.value = '';
@@ -346,10 +348,10 @@ const checkExistingSessions = async () => {
     });
 
     await walletConnect.value.initClient();
-    
+
     // Check if there are any active sessions
     const existingSessions = walletConnect.value.getListOfSessions();
-    
+
     if (existingSessions && existingSessions.length > 0) {
       // Found existing session
       const session = walletConnect.value.getMostRecentValidSession();
@@ -358,7 +360,7 @@ const checkExistingSessions = async () => {
         isVerified.value = true;
         showModeSelector.value = false;
         integrationMode.value = 'merchant-provided';
-        
+
         // Initialize SDK for UI
         await initSDK();
       }
@@ -388,7 +390,10 @@ onBeforeUnmount(() => {
 <template>
   <!-- Main Site Content -->
   <div class="wrapper tinder">
-    <div v-if="!currentSession && !isVerified && !showModeSelector" class="blur"></div>
+    <div
+      v-if="!currentSession && !isVerified && !showModeSelector"
+      class="blur"
+    ></div>
     <div class="header-wrap tinder"></div>
     <div class="bg-wrapper tinder"></div>
   </div>
@@ -397,12 +402,12 @@ onBeforeUnmount(() => {
   <div v-if="showModeSelector" class="mode-selector-overlay">
     <div class="mode-selector-modal">
       <h2>Choose Integration Mode</h2>
-      
+
       <button @click="selectMode('sdk-managed')" class="mode-btn">
         <strong>SDK-Managed</strong>
         <p>SDK handles everything</p>
       </button>
-      
+
       <button @click="selectMode('merchant-provided')" class="mode-btn">
         <strong>Merchant-Provided</strong>
         <p>You manage WalletConnect</p>
@@ -412,8 +417,12 @@ onBeforeUnmount(() => {
 
   <!-- Mode Badge (shown after selection) -->
   <div v-if="!showModeSelector && integrationMode" class="mode-badge">
-    <span class="badge-text">{{ integrationMode === 'sdk-managed' ? 'SDK-Managed' : 'Merchant-Provided' }}</span>
-    <button @click="changeMode" class="badge-change-btn" title="Change mode">Change</button>
+    <span class="badge-text">{{
+      integrationMode === 'sdk-managed' ? 'SDK-Managed' : 'Merchant-Provided'
+    }}</span>
+    <button @click="changeMode" class="badge-change-btn" title="Change mode">
+      Change
+    </button>
   </div>
 
   <!-- Loading overlay -->
@@ -423,18 +432,18 @@ onBeforeUnmount(() => {
   </div>
 
   <!-- Show Logout when connected, Login when not -->
-  <button 
-    v-if="!showModeSelector && currentSession" 
-    @click="disconnectAllSessions" 
-    :disabled="isConnecting" 
+  <button
+    v-if="!showModeSelector && currentSession"
+    @click="disconnectAllSessions"
+    :disabled="isConnecting"
     class="modal-btn"
   >
     Logout
   </button>
-  <button 
-    v-else-if="!showModeSelector" 
-    @click="handleNetworkAction" 
-    :disabled="isConnecting" 
+  <button
+    v-else-if="!showModeSelector"
+    @click="handleNetworkAction"
+    :disabled="isConnecting"
     class="modal-btn"
   >
     {{ isConnecting ? 'Loading...' : 'Login' }}
@@ -551,7 +560,7 @@ onBeforeUnmount(() => {
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  z-index: 10
+  z-index: 10;
 }
 
 @keyframes spin {
@@ -565,14 +574,14 @@ onBeforeUnmount(() => {
   .mode-selector-modal {
     padding: 16px;
   }
-  
+
   .mode-badge {
     top: 10px;
     left: 10px;
     padding: 6px 10px;
     font-size: 11px;
   }
-  
+
   .modal-btn {
     top: 10px;
     right: 10px;
@@ -589,18 +598,6 @@ onBeforeUnmount(() => {
   z-index: 9999 !important;
 }
 </style>
-*/
-@media (max-width: 768px) {
-  .mode-selector-modal {
-    padding: 24px;
-  }
-  
-  .mode-badge {
-    top: 12px;
-    left: 12px;
-    font-size: 12px;
-  }
-  
-  .modal-btn {
-    top: 12px;
-    right: 12
+*/ @media (max-width: 768px) { .mode-selector-modal { padding: 24px; }
+.mode-badge { top: 12px; left: 12px; font-size: 12px; } .modal-btn { top: 12px;
+right: 12

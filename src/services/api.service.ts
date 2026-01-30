@@ -1,7 +1,7 @@
 export interface ApiConfig {
   apiUrl: string;
   apiSecret: string;
-  network: "mainnet" | "testnet";
+  network: 'mainnet' | 'testnet';
 }
 
 export interface PresentationVerificationRequest {
@@ -31,7 +31,7 @@ export interface ChallengeRequest {
   network: string;
   contextDetails: {
     age: number;
-    operator: "gte" | "lte" | "eq";
+    operator: 'gte' | 'lte' | 'eq';
     proofType: string[];
   };
 }
@@ -48,8 +48,8 @@ export class ApiService {
    */
   private getHeaders(): Record<string, string> {
     return {
-      "Content-Type": "application/json",
-      "x-api-secret": this.config.apiSecret,
+      'Content-Type': 'application/json',
+      'x-api-secret': this.config.apiSecret,
     };
   }
 
@@ -58,9 +58,9 @@ export class ApiService {
    */
   private async makeRequest<T>(
     endpoint: string,
-    options: RequestInit = {},
+    options: RequestInit = {}
   ): Promise<T> {
-    const url = `${this.config.apiUrl.replace(/\/$/, "")}${endpoint}`;
+    const url = `${this.config.apiUrl.replace(/\/$/, '')}${endpoint}`;
 
     const response = await fetch(url, {
       headers: this.getHeaders(),
@@ -69,7 +69,7 @@ export class ApiService {
 
     if (!response.ok) {
       throw new Error(
-        `API request failed: ${response.status} ${response.statusText}`,
+        `API request failed: ${response.status} ${response.statusText}`
       );
     }
 
@@ -80,10 +80,10 @@ export class ApiService {
    * Request a challenge from the backend
    */
   async initializeChallenge(
-    request: ChallengeRequest,
+    request: ChallengeRequest
   ): Promise<ChallengeResponse> {
-    return this.makeRequest<ChallengeResponse>("/api/v1/challenge", {
-      method: "POST",
+    return this.makeRequest<ChallengeResponse>('/api/v1/challenge', {
+      method: 'POST',
       body: JSON.stringify(request),
     });
   }
@@ -92,10 +92,10 @@ export class ApiService {
    * Verify the presentation proof with the backend
    */
   async verifyPresentation(
-    request: PresentationVerificationRequest,
+    request: PresentationVerificationRequest
   ): Promise<VerificationResult> {
-    return this.makeRequest<VerificationResult>("/api/v1/verify/id-proof", {
-      method: "POST",
+    return this.makeRequest<VerificationResult>('/api/v1/verify/id-proof', {
+      method: 'POST',
       body: JSON.stringify(request),
     });
   }

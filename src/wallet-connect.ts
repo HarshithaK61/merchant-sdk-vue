@@ -1,6 +1,6 @@
-import { SignClient } from "@walletconnect/sign-client";
-import type { SessionTypes } from "@walletconnect/types";
-import logo from "./assets/browser-wallet-icon.svg";
+import { SignClient } from '@walletconnect/sign-client';
+import type { SessionTypes } from '@walletconnect/types';
+import logo from './assets/browser-wallet-icon.svg';
 const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID;
 const network = import.meta.env.VITE_NETWORK;
 
@@ -15,7 +15,7 @@ export interface WalletConnectEventHandlers {
 export class MerchantWalletConnect {
   private signClient: Awaited<ReturnType<typeof SignClient.init>> | null = null;
   public session: SessionTypes.Struct | null = null;
-  public uri: string = "";
+  public uri: string = '';
   private eventHandlers: WalletConnectEventHandlers = {};
 
   constructor(handlers?: WalletConnectEventHandlers) {
@@ -28,34 +28,34 @@ export class MerchantWalletConnect {
     this.signClient = await SignClient.init({
       projectId,
       metadata: {
-        name: "Merchant SDK Demo",
-        description: "Merchant dApp using Concordium ID verification",
+        name: 'Merchant SDK Demo',
+        description: 'Merchant dApp using Concordium ID verification',
         url: window.location.origin,
         icons: [`${window.location.origin}/favicon.ico`],
       },
     });
 
-    this.signClient.on("session_event", (event: any) => {
+    this.signClient.on('session_event', (event: any) => {
       this.eventHandlers.onSessionEvent?.(event);
     });
 
-    this.signClient.on("session_authenticate", () => {});
+    this.signClient.on('session_authenticate', () => {});
 
-    this.signClient.on("session_delete", (data: any) => {
+    this.signClient.on('session_delete', (data: any) => {
       this.session = null;
-      this.uri = "";
+      this.uri = '';
       this.eventHandlers.onSessionDelete?.(data);
       this.eventHandlers.onReconnectRequired?.('deleted');
     });
 
-    this.signClient.on("session_expire", (data: any) => {
+    this.signClient.on('session_expire', (data: any) => {
       this.session = null;
-      this.uri = "";
+      this.uri = '';
       this.eventHandlers.onSessionExpire?.(data);
       this.eventHandlers.onReconnectRequired?.('expired');
     });
 
-    this.signClient.on("session_request_expire", (data: any) => {
+    this.signClient.on('session_request_expire', (data: any) => {
       this.eventHandlers.onSessionRequestExpire?.(data);
     });
   }
@@ -92,28 +92,28 @@ export class MerchantWalletConnect {
 
   async connect(chainId?: string): Promise<string> {
     if (!this.signClient)
-      throw new Error("WalletConnect client not initialized");
+      throw new Error('WalletConnect client not initialized');
 
     const chain = chainId || `ccd:${network}`;
 
     const { uri, approval } = await this.signClient.connect({
       optionalNamespaces: {
         ccd: {
-          methods: ["request_verifiable_presentation_v1"],
+          methods: ['request_verifiable_presentation_v1'],
           chains: [chain],
           events: [
-            "session_ping",
-            "chain_changed",
-            "accounts_changed",
-            "account_disconnected",
-            "session_event",
+            'session_ping',
+            'chain_changed',
+            'accounts_changed',
+            'account_disconnected',
+            'session_event',
           ],
         },
       },
       pairingTopic: undefined,
     });
 
-    this.uri = uri || "";
+    this.uri = uri || '';
 
     approval()
       .then((session) => {
@@ -128,7 +128,7 @@ export class MerchantWalletConnect {
 
   async disconnect(topic?: string): Promise<void> {
     if (!this.signClient)
-      throw new Error("WalletConnect client not initialized");
+      throw new Error('WalletConnect client not initialized');
 
     const sessionTopic = topic || this.session?.topic;
     if (!sessionTopic) {
@@ -137,7 +137,7 @@ export class MerchantWalletConnect {
 
     await this.signClient.disconnect({
       topic: sessionTopic,
-      reason: { code: 6000, message: "User disconnected" },
+      reason: { code: 6000, message: 'User disconnected' },
     });
 
     if (this.session?.topic === sessionTopic) {
@@ -157,15 +157,15 @@ export class MerchantWalletConnect {
   async sendRequest<T = any>(
     method: string,
     params: any,
-    chainId?: string,
+    chainId?: string
   ): Promise<T> {
     if (!this.signClient)
-      throw new Error("WalletConnect client not initialized");
+      throw new Error('WalletConnect client not initialized');
 
     if (!this.session) {
       this.session = this.getMostRecentValidSession();
       if (!this.session) {
-        throw new Error("No active session available");
+        throw new Error('No active session available');
       }
     }
 
@@ -186,10 +186,10 @@ export class MerchantWalletConnect {
   async requestVerifiablePresentation(
     challengeData?: any,
     sessionTopic?: string,
-    chainId?: string,
+    chainId?: string
   ): Promise<any> {
     if (!this.signClient)
-      throw new Error("WalletConnect client not initialized");
+      throw new Error('WalletConnect client not initialized');
 
     const session = sessionTopic
       ? this.getListOfSessions().find((s) => s.topic === sessionTopic)
@@ -197,7 +197,7 @@ export class MerchantWalletConnect {
 
     if (!session) {
       throw new Error(
-        "No active session available for verifiable presentation request",
+        'No active session available for verifiable presentation request'
       );
     }
 
@@ -207,12 +207,12 @@ export class MerchantWalletConnect {
       topic: session.topic,
       chainId: chain,
       request: {
-        method: "request_verifiable_presentation_v1",
+        method: 'request_verifiable_presentation_v1',
         params: {
           ...(challengeData?.presentationRequest || {}),
           metadata: {
-            description: "Requesting age verification",
-            appName: "Concordium Merchant SDK",
+            description: 'Requesting age verification',
+            appName: 'Concordium Merchant SDK',
             url: window.location.origin,
             icons: [logo],
           },
@@ -225,14 +225,14 @@ export class MerchantWalletConnect {
 
   formatExpiryIST(expiryUnixSeconds: number): string {
     const date = new Date(expiryUnixSeconds * 1000);
-    return date.toLocaleString("en-IN", {
-      timeZone: "Asia/Kolkata",
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
+    return date.toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
     });
   }
 
