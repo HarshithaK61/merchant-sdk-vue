@@ -8,7 +8,7 @@
  *    - SDK handles WalletConnect initialization
  *    - SDK generates QR code
  *    - SDK manages sessions
- *    - Code: sdk.initWalletConnect({ projectId, network })
+ *    - Code: new MerchantSDK({ network }); sdk.initWalletConnect({ projectId })
  *
  * 2. MERCHANT-PROVIDED MODE (Advanced)
  *    - You create WalletConnect client
@@ -143,6 +143,7 @@ const initWalletConnect = async () => {
 const initSDK = async () => {
   try {
     sdk.value = new MerchantSDK({
+      network: network.value,
       onEvent: (event: any) => {
         switch (event.type) {
           case 'session-approved':
@@ -198,7 +199,6 @@ const connectWalletSDKManaged = async () => {
     // SDK handles WalletConnect initialization, QR generation, and session management
     await sdk.value!.initWalletConnect({
       projectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID,
-      network: import.meta.env.VITE_NETWORK,
       metadata: {
         name: 'Merchant SDK Demo',
         description: 'Merchant dApp using Concordium ID verification',

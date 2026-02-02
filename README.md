@@ -14,12 +14,11 @@ The SDK handles all WalletConnect complexity - initialization, QR generation, an
 
 **Code Example:**
 ```typescript
-const sdk = new MerchantSDK();
+const sdk = new MerchantSDK({ network: 'testnet' });
 
 // SDK handles everything - just provide config
 await sdk.initWalletConnect({
   projectId: 'YOUR_WALLETCONNECT_PROJECT_ID',
-  network: 'testnet',
   metadata: {
     name: 'My App',
     description: 'My awesome app'
@@ -45,7 +44,7 @@ await walletConnect.initClient();
 const uri = await walletConnect.connect();
 
 // SDK just displays the QR code
-const sdk = new MerchantSDK();
+const sdk = new MerchantSDK({ network: 'testnet' });
 await sdk.showWalletConnectPopup(uri);
 ```
 
